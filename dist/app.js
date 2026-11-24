@@ -36,6 +36,11 @@ const size=2048;
 const bounds=[[0,0],[size,size]];
 L.imageOverlay('terrain.webp',bounds,{alt:'엠버베일 지형'}).addTo(map);
 if(typeof addTerrainDetail==='function')addTerrainDetail(map);
+// Highlight pale terrain within the mapped Albaneve Summits boundary.
+const snowPane=map.createPane('snowRelief');
+snowPane.style.zIndex=410;
+snowPane.style.pointerEvents='none';
+L.imageOverlay('albaneve-snow.webp',[[772.8, 1048.0], [1593.6, 2048.0]],{pane:'snowRelief',alt:''}).addTo(map);
 const resetMap=()=>map.fitBounds(bounds,{animate:false});
 resetMap();
 map.setMaxBounds([[-size/2,-size/2],[size*1.5,size*1.5]]);
@@ -241,15 +246,15 @@ function draw(){
   ctx.textAlign='center';ctx.textBaseline='middle';
   for(const {x,y,items} of hits){
     const p=items[0],img=sprite(markerIcon(p));
-    ctx.beginPath();ctx.arc(x,y,14,0,2*Math.PI);ctx.fillStyle='#142221ec';ctx.fill();
+    ctx.beginPath();ctx.arc(x,y,11,0,2*Math.PI);ctx.fillStyle='#142221ec';ctx.fill();
     ctx.strokeStyle='#c2b38c';ctx.lineWidth=1.2;ctx.stroke();
-    if(img.complete&&img.naturalWidth)ctx.drawImage(img,x-12,y-12,24,24);
+    if(img.complete&&img.naturalWidth)ctx.drawImage(img,x-9.5,y-9.5,19,19);
     if(items.length>1){
       const label=items.length>999?'999+':String(items.length);
       ctx.font='bold 10px system-ui';
       const w=Math.max(14,Math.ceil(ctx.measureText(label).width)+6);
-      ctx.fillStyle='#f4d298';ctx.beginPath();ctx.roundRect(x+5,y-19,w,13,6);ctx.fill();
-      ctx.fillStyle='#182221';ctx.fillText(label,x+5+w/2,y-12);
+      ctx.fillStyle='#f4d298';ctx.beginPath();ctx.roundRect(x+4,y-16,w,13,6);ctx.fill();
+      ctx.fillStyle='#182221';ctx.fillText(label,x+4+w/2,y-9);
     }
   }
 }
