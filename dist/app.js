@@ -95,7 +95,7 @@ const pointText=points.map(p=>{
     dataByKey.get(key).push(p);
   }
   const g=groups.get(p[0]);
-  return searchable([p[1],p[2],p[3],displayRegion(p),regionName(p),p[8],g.title,g.en,groups.get(p[7])?.title,groups.get(p[7])?.en,xy(p)].join(' '));
+  return searchable([p[1],p[2],p[3],displayRegion(p),regionName(p),p[8],g.title,g.en,g.aliases,groups.get(p[7])?.aliases,groups.get(p[7])?.title,groups.get(p[7])?.en,xy(p)].join(' '));
 });
 function element(tag,text,cls){
   const el=document.createElement(tag);
@@ -195,7 +195,7 @@ $('filterQuery').oninput=()=>{
     const block=detailsBySection.get(section);
     let any=false;
     for(const g of items){
-      const hit=searchable([section,g.title,g.en,g.key].join(' ')).includes(q);
+      const hit=searchable([section,g.title,g.en,g.key,g.aliases].join(' ')).includes(q);
       rows.get(g.key).row.hidden=!hit;
       if(hit)any=true;
     }
