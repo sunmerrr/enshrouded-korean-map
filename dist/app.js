@@ -40,6 +40,39 @@ let hits=[],frame=0,visible=[],results=[],shown=0;
 const perPage=80;
 const mobile=window.matchMedia('(max-width:680px)');
 const dataByKey=new Map();
+const regionPane=map.createPane('regionOverlay');
+regionPane.style.zIndex=415;
+regionPane.style.pointerEvents='none';
+const regionLayers=new Map();
+const labels=L.layerGroup();
+for(const r of window.REGIONS){
+  $('region').add(new Option(r.name+' · Lv. '+r.level,r.name));
+  const polygon=L.polygon(r.rings,{pane:'regionOverlay',interactive:false,color:r.color,weight:1.5,opacity:.85,fillOpacity:.10});
+  const label=L.tooltip({pane:'regionOverlay',permanent:true,direction:'center',className:'region-label',opacity:1})
+    .setLatLng(r.anchor).setContent(r.name);
+  regionLayers.set(r.name,{polygon,label});
+}
+function regionName(p){return p[3]==='Low Meadows'?'스프링랜드':p[3]}
+function regionMatches(p){return !$('region').value||regionName(p)===$('region').value}
+function drawRegions(){
+  labels.clearLayers();
+  for(const [name,{polygon,label}] of regionLayers){
+    if(!$('boundaries').checked){polygon.remove();continue}
+    const focused=$('region').value===name;
+    polygon.setStyle({weight:focused?3:1.5,fillOpacity:focused ? 0.2 : 0.08}).addTo(map);
+    if(!$('region').value||focused)labels.addLayer(label);
+  }
+  labels.addTo(map);
+}
+$('boundaries').onchange=drawRegions;
+$('region').onchange=()=>{
+  drawRegions();
+  const region=regionLayers.get($('region').value);
+  if(region)map.fitBounds(region.polygon.getBounds(),{padding:[8,8],animate:false});else resetMap();
+  if(!$('places').hidden)search();
+  refreshVisible();
+};
+drawRegions();
 const coords=p=>[p[5]/5,p[4]/5];
 const xy=p=>'X '+Math.round(p[4])+' · Z '+Math.round(p[5]);
 const title=p=>p[1]||p[2]||groups.get(p[0]).title;
@@ -50,7 +83,7 @@ const pointText=points.map(p=>{
     dataByKey.get(key).push(p);
   }
   const g=groups.get(p[0]);
-  return searchable([p[1],p[2],p[3],g.title,g.en,groups.get(p[7])?.title,groups.get(p[7])?.en,xy(p)].join(' '));
+  return searchable([p[1],p[2],p[3],regionName(p),g.title,g.en,groups.get(p[7])?.title,groups.get(p[7])?.en,xy(p)].join(' '));
 });
 function element(tag,text,cls){
   const el=document.createElement(tag);
@@ -81,7 +114,7 @@ function panel(open){
 $('paneltoggle').onclick=()=>panel(!$('panel').classList.contains('open'));
 $('plus').onclick=()=>map.zoomIn();
 $('minus').onclick=()=>map.zoomOut();
-$('home').onclick=resetMap;
+$('home').onclick=()=>{ $('region').value=''; $('region').onchange() };
 function tab(places){
   $('places').hidden=!places;
   $('filters').hidden=places;
@@ -163,7 +196,7 @@ $('filterQuery').oninput=()=>{
 };
 function refreshVisible(){
   const queryActive=!$('places').hidden && $('query').value.trim().length>0;
-  visible=queryActive?results:[...new Set([...selected].flatMap(key=>dataByKey.get(key)||[]))];
+  visible=queryActive?results:[...new Set([...selected].flatMap(key=>dataByKey.get(key)||[]))].filter(regionMatches);
   map.closePopup();
   scheduleDraw();
 }
@@ -273,7 +306,7 @@ function addResults(){
 }
 function search(){
   const tokens=searchable($('query').value.trim()).split(/[\s,·]+/).filter(Boolean);
-  results=points.filter((p,i)=>(!$('selectedOnly').checked||selected.has(p[0])||selected.has(p[7]))&&tokens.every(t=>pointText[i].includes(t)));
+  results=points.filter((p,i)=>regionMatches(p)&&(!$('selectedOnly').checked||selected.has(p[0])||selected.has(p[7]))&&tokens.every(t=>pointText[i].includes(t)));
   shown=0;$('results').replaceChildren();$('results').scrollTop=0;
   $('count').textContent=format(results.length)+'곳';
   if(!results.length)$('results').append(element('p','일치하는 장소가 없습니다.','empty'));

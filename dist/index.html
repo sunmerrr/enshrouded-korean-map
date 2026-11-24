@@ -12,6 +12,10 @@
 <header><div class="brand">enshrouded.map</div><span class="rule"></span><span>인슈라오디드 지도</span><small>한국어</small></header>
 <main><section id="map" aria-label="인슈라오디드 대화형 지도"></section>
 <aside id="panel"><div class="intro"><span>ENSHROUDED</span><h1>인슈라오디드 지도</h1></div>
+<section class="region-controls" aria-label="지역">
+<label for="region">지역</label><select id="region"><option value="">전체 지역</option></select>
+<label class="boundary"><input id="boundaries" type="checkbox" checked> 경계 표시</label>
+</section>
 <nav aria-label="탐색 방식"><button id="filterTab" aria-pressed="true">지도 필터</button><button id="placesTab" aria-pressed="false">장소 검색</button></nav>
 <section id="filters"><label class="search"><input id="filterQuery" type="search" placeholder="필터 찾기" aria-label="필터 찾기"></label>
 <div class="actions"><span id="filterInfo"></span><button id="selectAll">전체 선택</button><button id="clearAll">해제</button></div>
@@ -19,10 +23,10 @@
 <section id="places" hidden><label class="search"><input id="query" type="search" placeholder="이름, 지역 또는 X Z 좌표" aria-label="장소 또는 좌표 검색"></label>
 <label class="range"><input id="selectedOnly" type="checkbox"> 선택한 필터에서만 검색</label>
 <div class="resultshead"><span>검색 결과</span><output id="count"></output></div><div id="results" class="scroll"></div></section>
-<footer><a href="https://pindrop.gg/enshrouded/map" target="_blank" rel="noreferrer">지도 자료 · Pindrop</a><a href="icons/credits.txt" target="_blank" rel="noreferrer">아이콘 출처</a><span>© Keen Games</span></footer></aside>
+<footer><a href="https://pindrop.gg/enshrouded/map" target="_blank" rel="noreferrer">지도 자료 · Pindrop</a><a href="https://metabot.gg/ko_KR/enshrouded/map" target="_blank" rel="noreferrer">지역 · MetaBot</a><a href="icons/credits.txt" target="_blank" rel="noreferrer">아이콘 출처</a><span>© Keen Games</span></footer></aside>
 <button id="paneltoggle" aria-controls="panel" aria-expanded="false">검색 · 필터</button>
 <div class="compass" aria-hidden="true"><b>N</b><i></i></div>
 <div class="maptools"><button id="plus" aria-label="확대">＋</button><button id="minus" aria-label="축소">−</button><button id="home" aria-label="지도 전체 보기">⛶</button></div>
 </main>
-<script src="vendor/leaflet.js"></script><script src="catalog.js"></script><script src="points.js"></script><script src="terrain-layer.js"></script><script src="app.js"></script>
+<script src="vendor/leaflet.js"></script><script src="catalog.js"></script><script src="regions.js"></script><script src="points.js"></script><script src="terrain-layer.js"></script><script src="app.js"></script>
 </body></html>
