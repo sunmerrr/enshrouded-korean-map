@@ -1,11 +1,19 @@
 'use strict';
 const $ = id => document.getElementById(id);
-const catalog = window.CATALOG;
+const metaMode=new URLSearchParams(location.search).get('source')==='metabot';
+$('source').value=metaMode?'metabot':'pins';
+$('source').onchange=()=>{
+  const url=new URL(location.href);
+  if($('source').value==='metabot')url.searchParams.set('source','metabot');
+  else url.searchParams.delete('source');
+  location.assign(url.href);
+};
+const catalog=metaMode?window.METABOT.catalog:window.CATALOG;
 const groups = new Map(catalog.map(g => [g.key,g]));
 const names = new Intl.NumberFormat('ko-KR');
 const format = n => names.format(n);
-const defaults = ['Ancient_Spire','Hollow_Halls','Shroud_Root','srv_shroud_root','srv_well_core_unconfirmed','srv_fast_travel','Village','Flame_Shrine'];
-const storageKey = 'embervale-map:filters:v2';
+const defaults = metaMode?catalog.filter(g=>g.on).map(g=>g.key):['Ancient_Spire','Hollow_Halls','Shroud_Root','srv_shroud_root','srv_well_core_unconfirmed','srv_fast_travel','Village','Flame_Shrine'];
+const storageKey = metaMode?'enshrouded-map:metabot:filters:v1':'embervale-map:filters:v2';
 function readSelection(){
   try{
     const saved=JSON.parse(localStorage.getItem(storageKey));
@@ -14,7 +22,7 @@ function readSelection(){
   return defaults.filter(key=>groups.has(key));
 }
 const selected=new Set(readSelection());
-const points=window.POINTS;
+const points=metaMode?window.METABOT.points:window.POINTS;
 const sections=new Map();
 for(const group of catalog){
   if(!sections.has(group.section))sections.set(group.section,[]);
@@ -52,6 +60,7 @@ for(const r of window.REGIONS){
     .setLatLng(r.anchor).setContent(r.name);
   regionLayers.set(r.name,{polygon,label});
 }
+function displayRegion(p){return p[3]==='Low Meadows'?'키 작은 목초지':p[3]}
 function regionName(p){return p[3]==='Low Meadows'?'스프링랜드':p[3]}
 function regionMatches(p){return !$('region').value||regionName(p)===$('region').value}
 function drawRegions(){
@@ -83,7 +92,7 @@ const pointText=points.map(p=>{
     dataByKey.get(key).push(p);
   }
   const g=groups.get(p[0]);
-  return searchable([p[1],p[2],p[3],regionName(p),g.title,g.en,groups.get(p[7])?.title,groups.get(p[7])?.en,xy(p)].join(' '));
+  return searchable([p[1],p[2],p[3],displayRegion(p),regionName(p),p[8],g.title,g.en,groups.get(p[7])?.title,groups.get(p[7])?.en,xy(p)].join(' '));
 });
 function element(tag,text,cls){
   const el=document.createElement(tag);
@@ -250,7 +259,15 @@ function openPlace(p){
   const g=groups.get(p[0]);
   const body=element('div',undefined,'place-note');
   const copy=element('div');
-  copy.append(element('strong',title(p)),element('small',[g.title,p[3]].filter(Boolean).join(' · ')),element('small',xy(p)));
+  copy.append(element('strong',title(p)),element('small',[g.title,displayRegion(p)].filter(Boolean).join(' · ')),element('small',xy(p)));
+  if(p[8])copy.append(element('small',p[8]));
+  if(p[9]){
+    const source=element('a','MetaBot 원문');
+    source.href='https://metabot.gg'+p[9];
+    source.target='_blank';
+    source.rel='noreferrer';
+    copy.append(source);
+  }
   body.append(icon(markerIcon(p)),copy);
   L.popup({offset:[0,-12]}).setLatLng(coords(p)).setContent(body).openOn(map);
 }
@@ -291,7 +308,7 @@ function addResults(){
   for(const p of results.slice(shown,shown+perPage)){
     const btn=element('button',undefined,'result');
     const label=element('span',title(p));
-    label.append(element('small',[p[3],xy(p)].filter(Boolean).join(' · ')));
+    label.append(element('small',[displayRegion(p),xy(p)].filter(Boolean).join(' · ')));
     btn.append(icon(markerIcon(p)),label);
     btn.onclick=()=>choose(p);
     fragment.append(btn);
@@ -304,8 +321,39 @@ function addResults(){
   }
   container.append(fragment);
 }
+const termIndex=window.MAP_TERMS.map(([en,ko])=>searchable(en+' '+ko));
+let termResults=[],termsShown=0;
+function appendTerms(){
+  const list=$('termResults');
+  list.querySelector('.more')?.remove();
+  const next=termResults.slice(termsShown,termsShown+40);
+  for(const [en,ko,path] of next){
+    const link=element('a',undefined,'term-link');
+    link.href='https://metabot.gg/ko_KR/enshrouded/'+path;
+    link.target='_blank';link.rel='noreferrer';
+    link.append(element('span',ko),element('small',en));
+    list.append(link);
+  }
+  termsShown+=next.length;
+  if(termsShown<termResults.length){
+    const more=element('button','명칭 더 보기','more');
+    more.onclick=appendTerms;
+    list.append(more);
+  }
+}
+function renderTerms(){
+  $('termResults').replaceChildren();
+  termsShown=0;
+  if(!$('termPanel').open)return;
+  if(termResults.length)appendTerms();
+  else $('termResults').append(element('p','일치하는 명칭이 없습니다.','empty'));
+}
+$('termPanel').ontoggle=renderTerms;
 function search(){
   const tokens=searchable($('query').value.trim()).split(/[\s,·]+/).filter(Boolean);
+  termResults=window.MAP_TERMS.filter((_,i)=>tokens.every(t=>termIndex[i].includes(t)));
+  $('termCount').textContent=format(termResults.length)+'건';
+  renderTerms();
   results=points.filter((p,i)=>regionMatches(p)&&(!$('selectedOnly').checked||selected.has(p[0])||selected.has(p[7]))&&tokens.every(t=>pointText[i].includes(t)));
   shown=0;$('results').replaceChildren();$('results').scrollTop=0;
   $('count').textContent=format(results.length)+'곳';
