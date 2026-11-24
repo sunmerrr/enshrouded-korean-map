@@ -195,7 +195,7 @@ function draw(){
   hits=[...cells.values()];
   ctx.textAlign='center';ctx.textBaseline='middle';
   for(const {x,y,items} of hits){
-    const p=items[0],g=groups.get(p[0]),img=sprite(p[6]||g.icon);
+    const p=items[0],img=sprite(markerIcon(p));
     ctx.beginPath();ctx.arc(x,y,14,0,2*Math.PI);ctx.fillStyle='#142221ec';ctx.fill();
     ctx.strokeStyle='#c2b38c';ctx.lineWidth=1.2;ctx.stroke();
     if(img.complete&&img.naturalWidth)ctx.drawImage(img,x-12,y-12,24,24);
@@ -208,12 +208,17 @@ function draw(){
     }
   }
 }
+function markerIcon(p){
+  const alternate=p[7];
+  if(alternate && selected.has(alternate) && !selected.has(p[0]))return groups.get(alternate).icon;
+  return p[6] || groups.get(p[0]).icon;
+}
 function openPlace(p){
   const g=groups.get(p[0]);
   const body=element('div',undefined,'place-note');
   const copy=element('div');
   copy.append(element('strong',title(p)),element('small',[g.title,p[3]].filter(Boolean).join(' · ')),element('small',xy(p)));
-  body.append(icon(p[6]||g.icon),copy);
+  body.append(icon(markerIcon(p)),copy);
   L.popup({offset:[0,-12]}).setLatLng(coords(p)).setContent(body).openOn(map);
 }
 function choose(p){
@@ -251,11 +256,10 @@ function addResults(){
   container.querySelector('.more')?.remove();
   const fragment=document.createDocumentFragment();
   for(const p of results.slice(shown,shown+perPage)){
-    const g=groups.get(p[0]);
     const btn=element('button',undefined,'result');
     const label=element('span',title(p));
     label.append(element('small',[p[3],xy(p)].filter(Boolean).join(' · ')));
-    btn.append(icon(p[6]||g.icon),label);
+    btn.append(icon(markerIcon(p)),label);
     btn.onclick=()=>choose(p);
     fragment.append(btn);
   }
