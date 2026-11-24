@@ -17,7 +17,10 @@ const storageKey = metaMode?'enshrouded-map:metabot:filters:v1':'embervale-map:f
 function readSelection(){
   try{
     const saved=JSON.parse(localStorage.getItem(storageKey));
-    if(Array.isArray(saved))return saved.filter(key=>groups.has(key));
+    if(Array.isArray(saved)){
+      if(!metaMode && saved.includes('srv_puzzle_parts'))saved.push('srv_puzzle_buttons','srv_levers_plates');
+      return saved.filter(key=>groups.has(key));
+    }
   }catch{}
   return defaults.filter(key=>groups.has(key));
 }
