@@ -29,3 +29,5 @@ footer{gap:4px 12px;flex-wrap:wrap}footer>*{white-space:nowrap}
   #groups,#results{overflow:visible}
   #spoilers{max-height:none;overflow:visible}
 }
+
+.spoiler-help{margin:3px 0 7px;color:var(--muted);font-size:13px;word-break:keep-all}
