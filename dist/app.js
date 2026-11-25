@@ -78,13 +78,13 @@ clip.id='hidden-regions';
 const defs=document.createElementNS(svgNS,'defs');
 defs.append(clip);
 const fogImage=document.createElementNS(svgNS,'image');
-fogImage.setAttribute('href','spoiler-terrain.webp');
+fogImage.setAttribute('href','spoiler-relief.webp');
 fogImage.setAttribute('width','2048');
 fogImage.setAttribute('height','2048');
 fogImage.setAttribute('clip-path','url(#hidden-regions)');
 fog.append(defs,fogImage);
 const fogPane=map.createPane('spoilerTerrain');
-fogPane.style.zIndex=414;
+fogPane.style.zIndex=408;
 fogPane.style.pointerEvents='none';
 L.svgOverlay(fog,bounds,{pane:'spoilerTerrain',interactive:false}).addTo(map);
 function updateSpoilers(){
@@ -130,7 +130,7 @@ function regionMatches(p){
 function drawRegions(){
   labels.clearLayers();
   for(const [name,{polygon,label}] of regionLayers){
-    if(!$('boundaries').checked||!revealed.has(name)){polygon.remove();continue}
+    if(!$('boundaries').checked){polygon.remove();continue}
     const focused=$('region').value===name;
     polygon.setStyle({weight:focused?3:1.5,fillOpacity:focused ? 0.2 : 0.08}).addTo(map);
     if(!$('region').value||focused)labels.addLayer(label);
