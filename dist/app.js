@@ -34,8 +34,7 @@ for(const group of catalog){
 const map=L.map('map',{crs:L.CRS.Simple,zoomControl:false,attributionControl:false,minZoom:-4,maxZoom:5,zoomSnap:.125,zoomDelta:.5,zoomAnimation:false});
 const size=2048;
 const bounds=[[0,0],[size,size]];
-L.imageOverlay('terrain.webp',bounds,{alt:'엠버베일 지형'}).addTo(map);
-if(typeof addTerrainDetail==='function')addTerrainDetail(map);
+L.imageOverlay('terrain-colour.webp',bounds,{alt:'엠버베일 지형'}).addTo(map);
 addTerrainContours(map,bounds);
 // Highlight pale terrain within the mapped Albaneve Summits boundary.
 const snowPane=map.createPane('snowRelief');
