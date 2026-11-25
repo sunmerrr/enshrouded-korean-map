@@ -12,3 +12,8 @@ aside{position:absolute;inset:0 auto 0 0;width:var(--side);z-index:600;display:f
 .region-controls{display:flex;align-items:center;gap:8px;padding:9px 15px;border-top:1px solid var(--border);font-size:14px}.region-controls select{min-width:0;flex:1;border:1px solid #596661;border-radius:4px;padding:5px;background:#142121;color:#f3f1e8;font:inherit}.boundary{display:flex;align-items:center;gap:3px;white-space:nowrap;font-size:13px}.region-label.leaflet-tooltip{pointer-events:none;background:#12201ee0;color:#f0e4c5;border:1px solid #9c9c7b80;padding:2px 6px;box-shadow:none;line-height:1.2;font-size:12px;font-weight:650}.region-label.leaflet-tooltip:before{display:none}
 .marker-source{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 15px;font-size:14px;color:var(--muted)}.marker-source select{flex:1;min-width:0;background:#142121;color:#f3f1e8;border:1px solid #596661;border-radius:4px;padding:4px;font:inherit}
 #termPanel{margin-top:8px;min-height:0;flex-shrink:0}#termResults{max-height:min(21vh,190px);overflow:auto}.term-link{display:block;padding:5px 6px;font-size:14px;color:var(--gold);text-decoration:none}.term-link small{display:block;color:var(--muted)}.place-note a{font-size:12px;color:var(--gold)}
+
+#spoilers{padding:6px 15px;border-top:1px solid var(--border);font-size:14px;max-height:27dvh;overflow:auto}
+#spoilers summary{cursor:pointer}#spoilerCount{margin-left:5px;color:var(--muted)}
+#spoilerOptions{display:grid;grid-template-columns:1fr 1fr;gap:2px 6px;margin:6px 0}
+#spoilerOptions label{display:flex;align-items:center;gap:4px;min-height:30px;cursor:pointer}

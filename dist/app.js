@@ -61,6 +61,59 @@ regionPane.style.zIndex=415;
 regionPane.style.pointerEvents='none';
 const regionLayers=new Map();
 const labels=L.layerGroup();
+const alwaysVisible='레벨우드';
+const spoilerKey='enshrouded-map:revealed-regions:v1';
+const revealed=new Set([alwaysVisible]);
+try{
+  const saved=JSON.parse(localStorage.getItem(spoilerKey));
+  if(Array.isArray(saved))for(const region of window.REGIONS){
+    if(saved.includes(region.name))revealed.add(region.name);
+  }
+}catch{}
+const svgNS='http://www.w3.org/2000/svg';
+const fog=document.createElementNS(svgNS,'svg');
+fog.setAttribute('viewBox','0 0 2048 2048');
+const clip=document.createElementNS(svgNS,'clipPath');
+clip.id='hidden-regions';
+const defs=document.createElementNS(svgNS,'defs');
+defs.append(clip);
+const fogImage=document.createElementNS(svgNS,'image');
+fogImage.setAttribute('href','spoiler-terrain.webp');
+fogImage.setAttribute('width','2048');
+fogImage.setAttribute('height','2048');
+fogImage.setAttribute('clip-path','url(#hidden-regions)');
+fog.append(defs,fogImage);
+const fogPane=map.createPane('spoilerTerrain');
+fogPane.style.zIndex=414;
+fogPane.style.pointerEvents='none';
+L.svgOverlay(fog,bounds,{pane:'spoilerTerrain',interactive:false}).addTo(map);
+function updateSpoilers(){
+  $('spoilerCount').textContent=(revealed.size-1)+' / '+(window.REGIONS.length-1);
+}
+for(const r of window.REGIONS){
+  const path=document.createElementNS(svgNS,'path');
+  path.setAttribute('clip-rule','evenodd');
+  path.setAttribute('d',r.rings.flatMap(polygon=>polygon.map(ring=>
+    'M'+ring.map(([y,x])=>x+','+(size-y)).join('L')+'Z')).join(' '));
+  if(!revealed.has(r.name))clip.append(path);
+  const label=document.createElement('label');
+  const box=document.createElement('input');
+  box.type='checkbox';
+  box.checked=revealed.has(r.name);
+  box.disabled=r.name===alwaysVisible;
+  label.append(box,r.name+(box.disabled?' (항상 표시)':''));
+  $('spoilerOptions').append(label);
+  box.onchange=()=>{
+    if(box.checked){revealed.add(r.name);path.remove()}
+    else{revealed.delete(r.name);clip.append(path)}
+    try{localStorage.setItem(spoilerKey,JSON.stringify([...revealed]))}catch{}
+    updateSpoilers();
+    drawRegions();
+    if(!$('places').hidden)search();
+    refreshVisible();
+  };
+}
+updateSpoilers();
 for(const r of window.REGIONS){
   $('region').add(new Option(r.name+' · Lv. '+r.level,r.name));
   const polygon=L.polygon(r.rings,{pane:'regionOverlay',interactive:false,color:r.color,weight:1.5,opacity:.85,fillOpacity:.10});
@@ -70,11 +123,14 @@ for(const r of window.REGIONS){
 }
 function displayRegion(p){return p[3]==='Low Meadows'?'키 작은 목초지':p[3]}
 function regionName(p){return p[3]==='Low Meadows'?'스프링랜드':p[3]}
-function regionMatches(p){return !$('region').value||regionName(p)===$('region').value}
+function regionMatches(p){
+  const name=regionName(p);
+  return (revealed.has(name)||(!name&&revealed.size===window.REGIONS.length))&&(!$('region').value||name===$('region').value);
+}
 function drawRegions(){
   labels.clearLayers();
   for(const [name,{polygon,label}] of regionLayers){
-    if(!$('boundaries').checked){polygon.remove();continue}
+    if(!$('boundaries').checked||!revealed.has(name)){polygon.remove();continue}
     const focused=$('region').value===name;
     polygon.setStyle({weight:focused?3:1.5,fillOpacity:focused ? 0.2 : 0.08}).addTo(map);
     if(!$('region').value||focused)labels.addLayer(label);
