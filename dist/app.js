@@ -91,8 +91,25 @@ const fogPane=map.createPane('spoilerTerrain');
 fogPane.style.zIndex=408;
 fogPane.style.pointerEvents='none';
 L.svgOverlay(fog,bounds,{pane:'spoilerTerrain',interactive:false}).addTo(map);
+const spoilerControls=new Map();
 function updateSpoilers(){
-  $('spoilerCount').textContent=(revealed.size-1)+' / '+(window.REGIONS.length-1);
+  const count=revealed.size-1;
+  $('spoilerCount').textContent=count+' / '+spoilerControls.size;
+  $('allSpoilers').checked=count===spoilerControls.size;
+  $('allSpoilers').indeterminate=count>0&&count<spoilerControls.size;
+}
+function setSpoilers(names,show){
+  for(const name of names){
+    const {box,path}=spoilerControls.get(name);
+    box.checked=show;
+    if(show){revealed.add(name);path.remove()}
+    else{revealed.delete(name);clip.append(path)}
+  }
+  try{localStorage.setItem(spoilerKey,JSON.stringify([...revealed]))}catch{}
+  updateSpoilers();
+  drawRegions();
+  if(!$('places').hidden)search();
+  refreshVisible();
 }
 for(const r of window.REGIONS){
   if(r.name===alwaysVisible)continue;
@@ -107,23 +124,25 @@ for(const r of window.REGIONS){
   box.checked=revealed.has(r.name);
   label.append(box,r.name);
   $('spoilerOptions').append(label);
-  box.onchange=()=>{
-    if(box.checked){revealed.add(r.name);path.remove()}
-    else{revealed.delete(r.name);clip.append(path)}
-    try{localStorage.setItem(spoilerKey,JSON.stringify([...revealed]))}catch{}
-    updateSpoilers();
-    drawRegions();
-    if(!$('places').hidden)search();
-    refreshVisible();
-  };
+  spoilerControls.set(r.name,{box,path});
+  box.onchange=()=>setSpoilers([r.name],box.checked);
 }
+$('allSpoilers').onchange=()=>setSpoilers(spoilerControls.keys(),$('allSpoilers').checked);
 updateSpoilers();
 for(const r of window.REGIONS){
   $('region').add(new Option(r.name+' · Lv. '+r.level,r.name));
   const polygon=L.polygon(r.rings,{pane:'regionOverlay',interactive:false,color:r.color,weight:1.5,opacity:.85,fillOpacity:.10});
   const label=L.tooltip({pane:'regionOverlay',permanent:true,direction:'center',className:'region-label',opacity:1})
     .setLatLng(r.anchor).setContent(r.name);
-  regionLayers.set(r.name,{polygon,label});
+  const revealButton=document.createElement('button');
+  revealButton.type='button';
+  revealButton.className='reveal-region';
+  revealButton.textContent=r.name;
+  revealButton.dataset.hint='클릭해서 스포일러 보기';
+  revealButton.setAttribute('aria-label',r.name+' · 클릭해서 스포일러 보기');
+  L.DomEvent.disableClickPropagation(revealButton);
+  revealButton.onclick=()=>setSpoilers([r.name],true);
+  regionLayers.set(r.name,{polygon,label,revealButton});
 }
 function displayRegion(p){return p[3]==='Low Meadows'?'키 작은 목초지':p[3]}
 function regionName(p){return p[3]==='Low Meadows'?'스프링랜드':p[3]}
@@ -133,11 +152,14 @@ function regionMatches(p){
 }
 function drawRegions(){
   labels.clearLayers();
-  for(const [name,{polygon,label}] of regionLayers){
+  for(const [name,{polygon,label,revealButton}] of regionLayers){
     if(!$('boundaries').checked){polygon.remove();continue}
     const focused=$('region').value===name;
     polygon.setStyle({weight:focused?3:1.5,fillOpacity:focused ? 0.2 : 0.08}).addTo(map);
-    if(!$('region').value||focused)labels.addLayer(label);
+    if(!$('region').value||focused){
+      label.setContent(revealed.has(name)?name:revealButton);
+      labels.addLayer(label);
+    }
   }
   labels.addTo(map);
 }

@@ -31,3 +31,11 @@ footer{gap:4px 12px;flex-wrap:wrap}footer>*{white-space:nowrap}
 }
 
 .spoiler-help{margin:3px 0 7px;color:var(--muted);font-size:13px;word-break:keep-all}
+
+.all-spoilers{display:inline-flex;align-items:center;gap:4px;min-height:30px;cursor:pointer;color:var(--gold)}
+.reveal-region{position:relative;pointer-events:auto;touch-action:manipulation;padding:4px;color:var(--gold);font:inherit;text-decoration:underline dotted;text-underline-offset:3px}
+.reveal-region::after{content:attr(data-hint);display:none;position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:#142122;color:white;border:1px solid #89958c;border-radius:4px;padding:5px 8px;pointer-events:none}
+.region-label:focus-within,.region-label:has(.reveal-region:hover){z-index:2}
+.reveal-region:focus-visible::after{display:block}
+@media(hover:hover){.reveal-region:hover::after{display:block}}
+@media(pointer:coarse){.reveal-region{min-height:32px;padding-inline:6px}}
