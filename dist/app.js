@@ -40,7 +40,7 @@ if(typeof addTerrainDetail==='function')addTerrainDetail(map);
 const snowPane=map.createPane('snowRelief');
 snowPane.style.zIndex=410;
 snowPane.style.pointerEvents='none';
-L.imageOverlay('albaneve-snow.webp',[[772.8, 1048.0], [1593.6, 2048.0]],{pane:'snowRelief',alt:''}).addTo(map);
+L.imageOverlay('albaneve-snow.webp',[[772.8, 1048.0], [1593.6, 2048.0]],{pane:'snowRelief',opacity:0.22,alt:''}).addTo(map);
 const resetMap=()=>map.fitBounds(bounds,{animate:false});
 resetMap();
 map.setMaxBounds([[-size/2,-size/2],[size*1.5,size*1.5]]);
