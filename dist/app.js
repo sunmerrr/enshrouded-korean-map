@@ -61,11 +61,15 @@ regionPane.style.zIndex=415;
 regionPane.style.pointerEvents='none';
 const regionLayers=new Map();
 const labels=L.layerGroup();
-const alwaysVisible='레벨우드';
-const spoilerKey='enshrouded-map:revealed-regions:v1';
+const alwaysVisible='스프링랜드';
+const spoilerKey='enshrouded-map:revealed-regions:v2';
 const revealed=new Set([alwaysVisible]);
 try{
-  const saved=JSON.parse(localStorage.getItem(spoilerKey));
+  let saved=JSON.parse(localStorage.getItem(spoilerKey));
+  if(saved===null){
+    const previous=JSON.parse(localStorage.getItem('enshrouded-map:revealed-regions:v1'));
+    if(Array.isArray(previous))saved=previous.filter(name=>name!=='레벨우드');
+  }
   if(Array.isArray(saved))for(const region of window.REGIONS){
     if(saved.includes(region.name))revealed.add(region.name);
   }
@@ -91,6 +95,7 @@ function updateSpoilers(){
   $('spoilerCount').textContent=(revealed.size-1)+' / '+(window.REGIONS.length-1);
 }
 for(const r of window.REGIONS){
+  if(r.name===alwaysVisible)continue;
   const path=document.createElementNS(svgNS,'path');
   path.setAttribute('clip-rule','evenodd');
   path.setAttribute('d',r.rings.flatMap(polygon=>polygon.map(ring=>
@@ -100,8 +105,7 @@ for(const r of window.REGIONS){
   const box=document.createElement('input');
   box.type='checkbox';
   box.checked=revealed.has(r.name);
-  box.disabled=r.name===alwaysVisible;
-  label.append(box,r.name+(box.disabled?' (항상 표시)':''));
+  label.append(box,r.name);
   $('spoilerOptions').append(label);
   box.onchange=()=>{
     if(box.checked){revealed.add(r.name);path.remove()}
